@@ -54,14 +54,14 @@ step_pre(VisitedList) :-
     score(S),
     time_taken(T),
 
-    ( AL=GL -> writeln('WON!'), format('Score: ~p,~n Steps: ~p', [S,T])
+    ( AL=GL -> score(S), time_taken(T), writeln('WON!'), format('Score: ~p,~n Steps: ~p', [S,T])
     ; AL=WL -> format('Lost: Wumpus eats you!~n', []), update_score(-1000),
-               format('Score: ~p,~n Steps: ~p', [S,T])
-    ; is_pit(yes, AL) -> format('Lost: Fell into a pit!~n', []), update_score(-1000),
-                        format('Score: ~p,~n Steps: ~p', [S,T])
+        score(S), time_taken(T), format('Score: ~p,~n Steps: ~p', [S,T])
+    ; is_pit(yes, AL) -> format('Lost: Fell into a pit!~n', []),update_score(-1000),
+            score(S),time_taken(T), format('Score: ~p,~n Steps: ~p', [S,T])
     ; take_steps(VisitedList)
     ).
-
+    
 take_steps(VisitedList) :-
 
     make_percept_sentence(Perception),
@@ -125,6 +125,11 @@ is_pit(no,  X) :-
     \+ pit_location(X).
 is_pit(yes, X) :-
     pit_location(X).
+
+is_wumpus(no,  X) :-
+    \+ wumpus_location(X).
+is_wumpus(yes, X) :-
+    wumpus_location(X).
 
 %------------------------------------------------------------------------------
 % Display standings
@@ -210,9 +215,7 @@ init_land_fig72 :-
     retractall( world_size(_) ),
     assert( world_size(4) ).
 
-% for all cells in the world, there is a 20% chance that it contains a pit, there cant be a pit in the same cell as the wumpus or the gold or in the cell (1,1)
-% pit location cant be more than once in the pit_location list, but overall there can be more than one pit in the world
-
+% function that initializes pits positions, pits are drown in each cell with probability 0.2 but not in the cell (1,1) and not in the cell with wumpus or gold
 init_pits :-
     retractall( pit_location(_) ),
     world_size(W),
