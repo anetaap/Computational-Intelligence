@@ -51,17 +51,24 @@ step_pre(VisitedList) :-
     agent_location(AL),
     gold_location(GL),
     wumpus_location(WL),
-    score(S),
-    time_taken(T),
 
-    ( AL=GL -> score(S), time_taken(T), writeln('WON!'), format('Score: ~p,~n Steps: ~p', [S,T])
-    ; AL=WL -> format('Lost: Wumpus eats you!~n', []), update_score(-1000),
-        score(S), time_taken(T), format('Score: ~p,~n Steps: ~p', [S,T])
-    ; is_pit(yes, AL) -> format('Lost: Fell into a pit!~n', []),update_score(-1000),
-            score(S),time_taken(T), format('Score: ~p,~n Steps: ~p', [S,T])
+    ( AL=GL -> score(S), time_taken(T), 
+        format('_________________Result_________________~n', []),
+        writeln('WON!'), format('Score: ~p,~nSteps: ~p', [S,T]),
+        format('~n________________________________________~n', [])
+    ; AL=WL -> 
+        format('_________________Result_________________~n', []),
+        format('Lost: Wumpus eats you!~n', []), update_score(-1000),
+        score(S), time_taken(T), format('Score: ~p,~nSteps: ~p', [S,T]),
+        format('~n________________________________________~n', [])
+    ; is_pit(yes, AL) -> 
+        format('_________________Result_________________~n', []),
+        format('Lost: Fell into a pit!~n', []),update_score(-1000),
+        score(S),time_taken(T), format('Score: ~p,~nSteps: ~p', [S,T]),
+        format('~n________________________________________~n', [])
     ; take_steps(VisitedList)
     ).
-    
+
 take_steps(VisitedList) :-
 
     make_percept_sentence(Perception),
@@ -125,11 +132,6 @@ is_pit(no,  X) :-
     \+ pit_location(X).
 is_pit(yes, X) :-
     pit_location(X).
-
-is_wumpus(no,  X) :-
-    \+ wumpus_location(X).
-is_wumpus(yes, X) :-
-    wumpus_location(X).
 
 %------------------------------------------------------------------------------
 % Display standings
@@ -215,31 +217,25 @@ init_land_fig72 :-
     retractall( world_size(_) ),
     assert( world_size(4) ).
 
-% function that initializes pits positions, pits are drown in each cell with probability 0.2 but not in the cell (1,1) and not in the cell with wumpus or gold
+% function that initializes pits positions, pits are drown in each cell with probability 0.2 but not in the cell (1,1) 
 init_pits :-
     retractall( pit_location(_) ),
     world_size(W),
     init_pits(W).
 
 init_pits(0).
+init_pits(W) :-
+    init_pits_row(W),
+    W1 is W-1,
+    init_pits(W1).
 
-init_pits(N) :-
-    random(1, 5, X),
-    (   X = 1 -> init_pit(N)
-    ;   true
-    ),
-    N1 is N-1,
-    init_pits(N1).
+init_pits_row(0).
+init_pits_row(W) :-
+    random(0, 10, R),
+    (   R<2, W\=1 -> assert( pit_location([W,1]) ); true ),
+    W1 is W-1,
+    init_pits_row(W1).
 
-init_pit(N) :-
-    world_size(W),
-    random(1, W, X),
-    random(1, W, Y),
-    wumpus_location(WL),
-    gold_location(GL),
-    (   [X,Y]\=[1,1], [X,Y] \= WL, [X,Y] \= GL -> assert( pit_location([X,Y]) )
-    ;  init_pit(N)
-    ).
 
 % function that initializes gold location, gold can be everywhere except in the cell (1,1) and in the cell with wumpus
 init_gold :-
@@ -277,7 +273,9 @@ print_world :-
     wumpus_location(WL),
     gold_location(GL),
     findall(X, pit_location(X), PL),
-    format('Wumpus location: ~p,~n Gold location: ~p,~n Pits location: ~p~n', [WL,GL,PL]).
+    format('___________________World__________________~n'),
+    format('Wumpus location: ~p,~nGold location: ~p,~nPits location: ~p~n', [WL,GL,PL]),
+    format('__________________________________________~n').
 
 %------------------------------------------------------------------------------
 % Perceptors
