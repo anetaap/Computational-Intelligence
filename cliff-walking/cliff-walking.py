@@ -35,6 +35,7 @@ for episode in range(evaluate_episodes):
         action = np.argmax(Q[state])
         # Take the chosen action
         state, reward, terminated, truncated, info = env.step(action)
+        # Update rewards
         episode_reward += reward
         total_reward += reward
 
