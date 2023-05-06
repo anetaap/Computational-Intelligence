@@ -7,7 +7,6 @@ def q_learning(env, n_states, n_actions, epsilon, alpha, gamma, n_episodes):
     Q = np.zeros((n_states, n_actions))
     learning_curve = np.zeros(n_episodes)
 
-    total_reward = 0
     for episode in range(n_episodes):
         state = env.reset()[0]
         terminated, truncated = False, False
@@ -24,17 +23,21 @@ def q_learning(env, n_states, n_actions, epsilon, alpha, gamma, n_episodes):
             observation, reward, terminated, truncated, info = env.step(action)
 
             # Print
-            print(f'Episode {episode}: observation={observation}, action={action}, state={state}, reward={reward};')
+            # print(f'Episode {episode}: observation={observation}, action={action}, state={state}, reward={reward};')
 
             # Update Q
             Q[state, action] = alpha * (reward + gamma * np.max(Q[observation])) + (1 - alpha) * Q[state, action]
             state = observation
 
             episode_reward += reward
-            total_reward += reward
 
         learning_curve[episode] = episode_reward
 
+    return Q, learning_curve
+
+
+# define the plot function
+def plot(learning_curve):
     np.save('learning_curve.npy', learning_curve)
 
     learning_curve = np.load('learning_curve.npy')
@@ -44,4 +47,4 @@ def q_learning(env, n_states, n_actions, epsilon, alpha, gamma, n_episodes):
     plt.title('Learning Curve')
     plt.savefig('learning_curve.png')
 
-    return Q, total_reward
+    plt.show()
