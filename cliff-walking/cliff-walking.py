@@ -6,6 +6,7 @@ from q_learning import q_learning, plot
 Program solving a cliff walking problem from a gymnasium environment using Q-learning.
 """
 
+# create the environment
 env = gym.make('CliffWalking-v0')
 
 # get the number of states and actions
@@ -24,6 +25,8 @@ Q, learning_curve = q_learning(env=env, n_states=N_STATES, n_actions=N_ACTIONS, 
 plot(learning_curve)
 
 # evaluate the learned policy
+# create the environment with rendering
+env = gym.make('CliffWalking-v0', render_mode='human')
 evaluate_episodes = 50
 total_reward = 0
 for episode in range(evaluate_episodes):
@@ -42,3 +45,4 @@ for episode in range(evaluate_episodes):
     print(f'Episode numer {episode + 1}: reward={episode_reward}')
 
 print(f'Average reward over {evaluate_episodes} episodes: {total_reward / evaluate_episodes}')
+env.close()
