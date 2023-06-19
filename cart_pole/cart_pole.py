@@ -5,8 +5,20 @@ from stable_baselines3.common.callbacks import BaseCallback
 from stable_baselines3.common.env_util import make_vec_env
 from stable_baselines3.common.logger import configure
 import pandas as pd
+from torch.utils.tensorboard import SummaryWriter
 
 tmp_path = "logs/"
+writer = SummaryWriter()
+
+
+class TensorboardCallback(BaseCallback):
+    def __init__(self, writer, verbose=0):
+        super(TensorboardCallback, self).__init__(verbose)
+        self.writer = writer
+
+    def _on_step(self) -> bool:
+        self.writer.add_scalar("reward", self.locals["rewards"][0], self.num_timesteps)
+        return True
 
 
 def run_experiment(env_name, hyperparameters, num_runs=10, total_timesteps=50000):
@@ -19,8 +31,9 @@ def run_experiment(env_name, hyperparameters, num_runs=10, total_timesteps=50000
         new_logger = configure(tmp_path, ["csv"])
         vec_env = make_vec_env(env_name, n_envs=1)
         model = PPO("MlpPolicy", vec_env, verbose=1, **hyperparameters)
+        callback = TensorboardCallback(writer, verbose=0)
         model.set_logger(new_logger)
-        model.learn(total_timesteps=total_timesteps)
+        model.learn(total_timesteps=total_timesteps, callback=callback)
 
         # read the csv file as pandas dataframe
         df = pd.read_csv(tmp_path + "progress.csv", sep=",")
@@ -67,3 +80,6 @@ for i, (params, (rewards, stds)) in enumerate(zip(hyperparameters_list, learning
     axs[i].legend()
 plt.tight_layout()
 plt.show()
+
+# Close the writer
+writer.close()
