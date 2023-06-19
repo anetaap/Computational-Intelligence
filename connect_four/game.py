@@ -29,6 +29,8 @@ class Game:
         nb_draws: int = 0
 
         for i in tqdm(range(epoch)):
+            total_reward_0 = 0
+            total_reward_1 = 0
             was_draw: bool = False
             self.env.reset()
             for agent in self.env.agent_iter():
@@ -36,12 +38,12 @@ class Game:
                 if termination:
                     if reward == 1 and agent == "player_0":
                         nb_wins_agent_1 += 1
-                        learning_curve_0[i] = 1
-                        learning_curve_1[i] = -1
+                        learning_curve_0[i] = total_reward_0
+                        # learning_curve_1[i] = -1
                     elif reward == 1 and agent == "player_1":
                         nb_wins_agent_2 += 1
-                        learning_curve_0[i] = -1
-                        learning_curve_1[i] = 1
+                        # learning_curve_0[i] = -1
+                        learning_curve_1[i] = total_reward_1
                     elif reward == 0 and agent == "player_0":
                         was_draw = True
                     elif reward == 0 and agent == "player_1" and was_draw:
@@ -78,10 +80,12 @@ class Game:
                         self.player_0.update(
                             last_observation, action, reward, termination, observation
                         )
+                        total_reward_0 += reward
                     else:
                         self.player_1.update(
                             last_observation, action, reward, termination, observation
                         )
+                        total_reward_1 += reward
 
         plot_learning_curve(learning_curve_0, "player_0")
         plot_learning_curve(learning_curve_1, "player_1")
